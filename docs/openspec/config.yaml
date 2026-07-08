@@ -1,0 +1,44 @@
+schema: spec-driven
+
+# Project context (optional)
+# This is shown to AI when creating artifacts.
+# プロジェクト固有の情報はここに重複させず、正本となるファイルを参照させる
+# （単一情報源を保ち、ドキュメント間のドリフトを防ぐ）。
+context: |
+  ## 参照すべきファイル（artifact 作成前に必ず読む / source of truth）
+  - CLAUDE.md            — 開発方針・コマンド・Anti-Patterns・Task Checklist
+  - README.md            — プロジェクト概要・セットアップ・運用
+  - docs/default-spec.md — 全体要件・背景・決定事項サマリ（設計の正本）
+  - docs/system-spec.md  — システム構成・実行環境・ライブラリ・運用
+  - docs/logic-spec.md   — 機能ロジック・状態遷移の設計
+  - docs/test-spec.md    — テスト設計・ケース一覧
+  上記に既出の情報は config に再掲しない。矛盾を見つけたら正本を優先し、変更は change として起票する。
+
+  ## 開発ワークフロー（共通）
+  - Spec-driven（OpenSpec）+ TDD。テストを先に書き、失敗を確認 → コミット → 実装。
+  - 実装中はテストを変更しない。設計の正本（docs/*-spec.md）は直接書き換えず、必ず change として起票する。
+  - 詳細な規約・禁止事項・チェックリストは CLAUDE.md を正とする。
+
+# Per-artifact rules (optional)
+# Add custom rules for specific artifacts.
+# 各 artifact に共通して適用する SDD のベストプラクティス（プロジェクト非依存・テンプレート）。
+rules:
+  proposal:
+    - Why / What changes / Impact を必ず明記し、Non-goals（やらないこと）を 1 セクション設ける。
+    - 既存の設計の正本（docs/*-spec.md）と矛盾しないか確認し、矛盾する場合は変更理由を Why に書く。
+    - スコープは小さく保つ。複数の関心事が混ざるなら change を分割する。
+    - 外部依存・非機能要件（耐障害性・冪等性・性能・セキュリティ）への影響を評価する。影響なしなら「影響なし」と明示。
+  design:
+    - 設計判断ごとに「決定 / 理由 / 却下した代替案」を残す。
+    - 状態遷移・冪等性キー・失敗時の再開点を、影響する箇所では図か擬似コードで示す。
+    - データスキーマの変更は冪等なマイグレーションを前提に記述する。
+    - 設定値はハードコードせず外部設定に出し、検証（zod 等）の追加要否を述べる。
+  spec:
+    - 要件は SHALL/MUST を使った検証可能な記述にし、曖昧語（適切に・うまく 等）を避ける。
+    - 各 requirement に「期待される入出力」を伴わせ、テストケースへ対応付けできる粒度にする。
+    - 正常系と同等に異常系（タイムアウト・レート制限・例外・リソース枯渇）を仕様化する。
+  tasks:
+    - TDD 順を厳守: 「テスト作成 → 失敗確認 → コミット → 実装 → 通過」に分解する。
+    - 1 タスクは単一責務（1 つのテスト関心事 / 1 コミットで完結する単位）に閉じる。複数の関心事が混ざるなら分割する。
+    - 各タスクに対応するテスト層（ユニット/統合/契約モック）を明記する。
+    - 完了条件に CLAUDE.md の Task Checklist を満たすことを含める。
